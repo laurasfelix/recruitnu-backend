@@ -1,0 +1,10 @@
+Flask
+openai
+beautifulsoup4
+lxml
+requests
+boto3
+flask-bcrypt
+flask-cors
+scikit-learn
+python-dotenv
