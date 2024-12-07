@@ -8,4 +8,4 @@ flask-bcrypt
 flask-cors
 scikit-learn
 python-dotenv
-PyJWT
+PyJWT==2.10.0
