@@ -9,3 +9,4 @@ flask-cors
 scikit-learn
 python-dotenv
 PyJWT==2.10.0
+gunicorn
