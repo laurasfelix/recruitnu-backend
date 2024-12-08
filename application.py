@@ -260,10 +260,19 @@ def get_user_jobs():
 
         applied_list = user.get('jobs_applied', None)
         created_list = user.get('jobs_created', None)
+
+        applied_jobs_with_scores = []
+        for job_id in applied_list:
+            job_response = table.query(KeyConditionExpression=boto3.dynamodb.conditions.Key('job_id').eq(job_id))
+            if 'Items' in job_response and len(job_response['Items']) > 0:
+                job = job_response['Items'][0]
+                score = scoring(user, job['description'])  
+                job['compatibility_score'] = score
+                applied_jobs_with_scores.append(job)
        
         return jsonify({
             'message': 'User jobs fetched successfully',
-            'applied': applied_list,
+            'applied': applied_jobs_with_scores,
             'created': created_list,
         }), 200
 
