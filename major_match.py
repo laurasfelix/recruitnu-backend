@@ -59,19 +59,19 @@ training_data = [
     ('Spanish Minor', 'Humanities'),
 ]
 
+texts = [t[0] for t in training_data]
+labels = [t[1] for t in training_data]
+
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(texts)
+y = labels
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+clf = LogisticRegression(max_iter=1000)
+clf.fit(X_train, y_train)
+
 def match(majors):
-
-    texts = [t[0] for t in training_data]
-    labels = [t[1] for t in training_data]
-
-    vectorizer = TfidfVectorizer()
-    X = vectorizer.fit_transform(texts)
-    y = labels
-
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-    clf = LogisticRegression(max_iter=1000)
-    clf.fit(X_train, y_train)
 
     res = {}
 
