@@ -119,7 +119,7 @@ def add_user():
                     'jobs_applied': [],
                     'jobs_created': [],
                     'major': major, 
-                    'field': field['majors'],
+                    'field': field[0],
                     'year': year, 
                     'gpa': gpa, 
                     'skills': skills, 
