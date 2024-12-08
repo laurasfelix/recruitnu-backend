@@ -186,14 +186,15 @@ def add_job():
                     'timestamp': timestamp,
                     'job_image': job_image,
                     'job_link': job_link,
+                    'fields': []
                 }
             )
         
 
-        user = users.get_item(Key={'user_id': user_id})['Item']
+        user = users.get_item(Key={'user_id': user_id})['Items']
 
-        jobs_created = user.get('jobs_created', 0)  
-        jobs_created += [job_id]
+        jobs_created = user.get('jobs_created', [])  
+        jobs_created.append(job_id)
         
         users.update_item(
             Key={'user_id': user_id},
@@ -218,7 +219,9 @@ def apply_job():
             logger.info("error data:", data)
             return jsonify({'error': 'missing required fields'}), 400
 
-        user = users.get_item(Key={'user_id': user_id})['Item']
+        user = users.get_item(Key={'user_id': user_id}).get('Items')
+
+        jobs_applied = user.get('jobs_applied', None)
 
         jobs_applied += [job_id]
         
@@ -242,7 +245,7 @@ def get_user_jobs():
             return jsonify({'error': 'missing user_id'}), 400
 
    
-        response = users.scan(KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id))
+        response = users.query(KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id))
 
         if 'Items' not in response or len(response['Items']) == 0:
             return jsonify({'error': 'No users found'}), 404
@@ -250,8 +253,8 @@ def get_user_jobs():
         user = response['Items']
 
 
-        applied_list = user['jobs_applied'] 
-        created_list = user['jobs_created'] 
+        applied_list = user.get('jobs_applied', None)
+        created_list = user.get('jobs_created', None)
      
         applied_list = sorted(applied_list, key=lambda x: x.get("timestamp", 0))
         created_list = sorted(created_list, key=lambda x: x.get("timestamp", 0))
@@ -264,6 +267,37 @@ def get_user_jobs():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+
+
+@app.route('/api/get_jobs_field', methods=['get'])
+@token_required
+def get_user_field():
+    try:
+        user_id = request.args.get("user_id")
+      
+        if not user_id:
+            return jsonify({'error': 'missing user_id'}), 400
+
+        response = user.query(KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id))
+
+        if 'Items' not in response or len(response['Items']) == 0:
+            return jsonify({'error': 'No users found'}), 404
+
+        user = response['Items']
+
+        field = user.get('field', None)
+
+        jobs = table.scan(FilterExpression=Attr("fields").contains(field))['Items']
+     
+        return jsonify({
+            'message': 'Jobs in user s fields fetched successfully',
+            'jobs': jobs,
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 
 @app.route('/api/major_scrape', methods=['get'])
 def scrape_major():
@@ -271,7 +305,7 @@ def scrape_major():
         majors = scrape()
        
         return jsonify({
-            'message': 'User jobs fetched successfully',
+            'message': 'majors fetched successfully',
             'majors': majors,
         }), 200
 
@@ -279,7 +313,7 @@ def scrape_major():
         return jsonify({'error': str(e)}), 500
     
 @app.route('/api/user_score', methods=['get'])
-def majors_scrape():
+def user_score():
     try:
         user_id = request.args.get("user_id") 
         if not user_id:
@@ -289,8 +323,8 @@ def majors_scrape():
         if not job_id:
             return jsonify({'error': 'missing job_id'}), 400
    
-        user = users.scan(KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id))['Item']
-        job = table.scan(KeyConditionExpression=boto3.dynamodb.conditions.Key('job_id').eq(job_id))['Item']
+        user = users.scan(KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id))['Items']
+        job = table.scan(KeyConditionExpression=boto3.dynamodb.conditions.Key('job_id').eq(job_id))['Items']
 
         score = scoring(user, job.get('description'))
        
