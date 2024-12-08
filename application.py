@@ -30,7 +30,7 @@ AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2', aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-table = dynamodb.Table('recruitnu-data')
+table = dynamodb.Table('recruitnu-jobs')
 users = dynamodb.Table('recruitnu-users')
 
 def token_required(f):
