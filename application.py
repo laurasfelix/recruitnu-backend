@@ -115,7 +115,7 @@ def add_user():
                     'jobs_applied': [],
                     'jobs_created': [],
                     'major': major, 
-                    'field': field[major],
+                    'field': field['majors'],
                     'year': year, 
                     'gpa': gpa, 
                     'skills': skills, 
@@ -148,7 +148,7 @@ def get_user():
             return jsonify({'error': 'user not found'}), 404
         
 
-        return jsonify({'message': 'User retrieved successfully', 'user': response['Items']}), 200
+        return jsonify({'message': 'User retrieved successfully', 'user': response['Items'][0]}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -191,7 +191,7 @@ def add_job():
             )
         
 
-        user = users.get_item(Key={'user_id': user_id})['Items']
+        user = users.get_item(Key={'user_id': user_id}).get('Item')
 
         jobs_created = user.get('jobs_created', [])  
         jobs_created.append(job_id)
@@ -219,11 +219,11 @@ def apply_job():
             logger.info("error data:", data)
             return jsonify({'error': 'missing required fields'}), 400
 
-        user = users.get_item(Key={'user_id': user_id}).get('Items')
+        user = users.get_item(Key={'user_id': user_id}).get('Item')
 
-        jobs_applied = user.get('jobs_applied', None)
+        jobs_applied = user.get('jobs_applied', [])
 
-        jobs_applied += [job_id]
+        jobs_applied.append(job_id)
         
         users.update_item(
             Key={'user_id': user_id},
@@ -250,14 +250,11 @@ def get_user_jobs():
         if 'Items' not in response or len(response['Items']) == 0:
             return jsonify({'error': 'No users found'}), 404
 
-        user = response['Items']
+        user = response['Items'][0]
 
 
         applied_list = user.get('jobs_applied', None)
         created_list = user.get('jobs_created', None)
-     
-        applied_list = sorted(applied_list, key=lambda x: x.get("timestamp", 0))
-        created_list = sorted(created_list, key=lambda x: x.get("timestamp", 0))
        
         return jsonify({
             'message': 'User jobs fetched successfully',
@@ -279,14 +276,14 @@ def get_user_field():
         if not user_id:
             return jsonify({'error': 'missing user_id'}), 400
 
-        response = user.query(KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id))
+        response = users.query(KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id))
 
         if 'Items' not in response or len(response['Items']) == 0:
             return jsonify({'error': 'No users found'}), 404
 
-        user = response['Items']
+        user = response['Items'][0]
 
-        field = user.get('field', None)
+        field = user.get('field', '')
 
         jobs = table.scan(FilterExpression=Attr("fields").contains(field))['Items']
      
@@ -323,8 +320,8 @@ def user_score():
         if not job_id:
             return jsonify({'error': 'missing job_id'}), 400
    
-        user = users.scan(KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id))['Items']
-        job = table.scan(KeyConditionExpression=boto3.dynamodb.conditions.Key('job_id').eq(job_id))['Items']
+        user = users.query(KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id))['Items'][0]
+        job = table.query(KeyConditionExpression=boto3.dynamodb.conditions.Key('job_id').eq(job_id))['Items'][0]
 
         score = scoring(user, job.get('description'))
        
