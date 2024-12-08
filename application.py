@@ -17,6 +17,7 @@ from company_lookup import lookup
 from major_match import match
 from major_scrape import scrape
 from scoring import scoring
+from decimal import Decimal
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -121,7 +122,7 @@ def add_user():
                     'major': major, 
                     'field': field[major],
                     'year': year, 
-                    'gpa': gpa, 
+                    'gpa': Decimal(gpa), 
                     'skills': skills, 
                 }
             )
