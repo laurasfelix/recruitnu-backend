@@ -146,7 +146,7 @@ def get_user():
             return jsonify({'error': 'missing required fields'}), 400
 
         response = users.query(
-    KeyConditionExpression=boto3.dynamodb.conditions.Key('username').eq(user_id)
+    KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id)
 )
         
         if 'Items' not in response or len(response['Items']) == 0:
