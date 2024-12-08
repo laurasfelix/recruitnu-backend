@@ -161,7 +161,6 @@ def add_job():
         user_id = data.get("user_id")
         location = data.get("location")
         job_type = data.get("job_type")
-        job_id = data.get("job_id")
         description = data.get("description")
         company_name = data.get("company_name")
         job_link = data.get("job_link")
