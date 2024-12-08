@@ -49,6 +49,10 @@ def token_required(f):
         return f(*args, **kwargs)
     return decorated
 
+@app.route('/')
+def health_check():
+    return jsonify({"status": "healthy"}), 200
+
 @app.route('/api/login', methods=['post'])
 def login():
     try:
