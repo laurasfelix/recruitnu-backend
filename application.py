@@ -122,7 +122,7 @@ def add_user():
                     'major': major, 
                     'field': field[major],
                     'year': year, 
-                    'gpa': Decimal(gpa), 
+                    'gpa': Decimal(str(gpa)), 
                     'skills': skills, 
                 }
             )
