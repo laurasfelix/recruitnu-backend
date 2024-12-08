@@ -169,6 +169,7 @@ def add_job():
         description = data.get("description")
         company_name = data.get("company_name")
         job_link = data.get("job_link")
+        fields = data.get("fields")
 
         if not description or not location or not job_type or not company_name or not job_link:
             logger.info("error data:", data)
@@ -191,7 +192,7 @@ def add_job():
                     'timestamp': timestamp,
                     'job_image': job_image,
                     'job_link': job_link,
-                    'fields': []
+                    'fields': fields,
                 }
             )
         
@@ -199,7 +200,18 @@ def add_job():
         user = users.get_item(Key={'user_id': user_id}).get('Item')
 
         jobs_created = user.get('jobs_created', [])  
-        jobs_created.append(job_id)
+        jobs_created.append({
+                    'user_id': user_id,
+                    'job_id': job_id,
+                    'location': location,
+                    'job_type': job_type,
+                    'description': description,
+                    'company_name': company_name,
+                    'timestamp': timestamp,
+                    'job_image': job_image,
+                    'job_link': job_link,
+                    'fields': fields,
+                })
         
         users.update_item(
             Key={'user_id': user_id},
@@ -240,6 +252,7 @@ def apply_job():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
 
 @app.route('/api/get_user_jobs', methods=['get'])
 @token_required
