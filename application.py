@@ -111,7 +111,7 @@ def add_user():
 
         users.put_item(
                 Item={
-                    'username': user_id,
+                    'user_id': user_id,
                     'given_name': given_name,
                     'last_name': last_name,
                     'phone_number': phone_number,
